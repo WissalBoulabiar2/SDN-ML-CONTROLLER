@@ -1,0 +1,29 @@
+{
+  "model": "GradientBoosting",
+  "feature_cols": [
+    "tx_bytes",
+    "rx_bytes",
+    "tx_packets",
+    "rx_packets",
+    "tx_errors",
+    "rx_errors",
+    "latency",
+    "bandwidth",
+    "utilization"
+  ],
+  "target": "link_cost",
+  "train_samples": 4000,
+  "rf_r2": 0.9954571217168694,
+  "gbr_r2": 0.9977404007198929,
+  "feature_importances": {
+    "tx_bytes": 0.00026590226093413697,
+    "rx_bytes": 0.00034410986656060907,
+    "tx_packets": 0.000312705592491892,
+    "rx_packets": 0.00031473293381410197,
+    "tx_errors": 0.1036790377372143,
+    "rx_errors": 0.47833913490356106,
+    "latency": 0.4163366047934843,
+    "bandwidth": 4.770519879341696e-05,
+    "utilization": 0.0003600667131462338
+  }
+}

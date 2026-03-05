@@ -35,7 +35,7 @@ REST API:
 Usage:
   PYTHONPATH=. ryu-manager controllers/controller_stp.py --observe-links
 """
-
+from controllers.sdn_rl_routing import QRoutingAgent, SDNNetwork
 import struct
 import logging
 import json
@@ -638,6 +638,10 @@ class StandaloneSTController(app_manager.RyuApp):
         self.pending       = PendingActions(timeout=120)
         self.security      = STPSecurityManager()
         self.dhcp_snooping = DHCPSnoopingManager()
+        self.rl_graph = nx.Graph()
+        self.rl_net   = SDNNetwork(self.rl_graph, mu=600, K=20, seed=None)
+        self.rl_agent = QRoutingAgent(self.rl_graph, self.rl_net)
+        self.rl_agent.load("controllers/qtable_geant.pkl")
 
         self._last_stplib_role = {}
         self._install_stplib_log_handler()
@@ -704,6 +708,7 @@ class StandaloneSTController(app_manager.RyuApp):
         datapath = ev.msg.datapath
         self.datapaths[datapath.id]   = datapath
         self.mac_to_port[datapath.id] = {}
+        self.rl_graph.add_node(datapath.id)
         parser  = datapath.ofproto_parser
         ofproto = datapath.ofproto
         match   = parser.OFPMatch()
@@ -744,7 +749,30 @@ class StandaloneSTController(app_manager.RyuApp):
                 return   # Packet dropped — rogue DHCP server
 
         self.mac_to_port[dpid][eth.src] = in_port
+        # ── RL Routing ───────────────────────────────────────────────────────────
         out_port = self.mac_to_port[dpid].get(eth.dst, ofproto.OFPP_FLOOD)
+        if out_port == ofproto.OFPP_FLOOD:
+	    # Cherche si dst_mac est connu sur un autre switch
+	    dst_dpid = None
+	    for sw, macs in self.mac_to_port.items():
+               if sw != dpid and eth.dst in macs:
+                    dst_dpid = sw
+                    break
+               if dst_dpid is not None:
+                 path = self.rl_agent.get_path(dpid, dst_dpid, lam=200, fallback=None)
+               if path and len(path) >= 2:
+                    next_hop = path[1]
+		    # Trouve le port local vers next_hop
+                    for mac, port in self.mac_to_port.get(next_hop, {}).items():
+                        if mac in self.mac_to_port.get(dpid, {}).values():
+                            pass
+		    # Port vers next_hop via mac appris
+                    learned = self.mac_to_port.get(next_hop, {})
+                    for m, p in self.mac_to_port[dpid].items():
+                        if m in learned:
+                           out_port = p
+                           break
+                    logger.info(f"[RL] path {dpid}→{dst_dpid}: {path} → out_port={out_port}")
         actions  = [parser.OFPActionOutput(out_port)]
         if out_port != ofproto.OFPP_FLOOD:
             self._add_flow(datapath, 1,

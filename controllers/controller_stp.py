@@ -2,17 +2,16 @@
 controller_stp.py — STP Multi-Protocole SEMI-MANUEL + Sécurité + DHCP Snooping
 ================================================================================
 Fonctionnalités:
-  1. stplib détecte les boucles, on intercepte le blocage → confirmation manuelle
+  1. stplib détecte les boucles → blocage automatique des ports NON_DESIGNATED
   2. RSTP / MSTP / PVST / PVST+ détectés via analyse BPDU raw
   3. BPDU Guard  — bloque immédiatement les ports edge qui reçoivent des BPDUs
   4. Root Guard  — empêche un port de devenir root port (Root Bridge Hijacking)
   5. DHCP Snooping — seuls les ports "trusted" peuvent envoyer des réponses DHCP
-                     (DHCPOFFER / DHCPACK / DHCPNAK).  Tout port non-trusted qui
-                     tente de répondre est bloqué + alerte CRITICAL.
+  6. Edge port detection — ports PC/NAT jamais bloqués (détection LLDP dynamique)
 
 Attaques contrées:
   • Root Bridge Hijacking → Root Guard
-  • Rogue DHCP Server     → DHCP Snooping
+  • Rogue DHCP Server     → DHCP Snooping + Mitigation Layer
   • BPDU sur port host    → BPDU Guard
 
 REST API:
@@ -27,22 +26,31 @@ REST API:
   DELETE /stp/security/guard/<dpid>/<port>
 
   ── DHCP Snooping ──────────────────────────────────────────────
-  POST /stp/dhcp-snooping/trust/<dpid>/<port>    Marquer port trusted
-  DELETE /stp/dhcp-snooping/trust/<dpid>/<port>   Retirer confiance
-  GET  /dhcp-snooping/status                       État + binding table
-  POST /stp/dhcp-snooping/unblock/<dpid>/<port>   Débloquer port rogue DHCP
+  POST /stp/dhcp-snooping/trust/<dpid>/<port>
+  DELETE /stp/dhcp-snooping/trust/<dpid>/<port>
+  GET  /dhcp-snooping/status
+  POST /stp/dhcp-snooping/unblock/<dpid>/<port>
+
+  ── DHCP Mitigation ────────────────────────────────────────────
+  GET  /dhcp-mitigation/status
+  GET  /dhcp-mitigation/threats
+  POST /dhcp-mitigation/quarantine/<dpid>/<port>
+  POST /dhcp-mitigation/release/<dpid>/<port>
+  POST /dhcp-mitigation/reset-score/<dpid>/<port>
 
 Usage:
   PYTHONPATH=. ryu-manager controllers/controller_stp.py --observe-links
 """
+
 from controllers.sdn_rl_routing import QRoutingAgent, SDNNetwork
+from controllers.dhcp_mitigation import DHCPMitigationLayer
 import struct
 import logging
 import json
 import time
 import threading
 from collections import defaultdict
-from typing import Dict, Optional, Union, List, Any  # Ajouté pour compatibilité Python 3.8
+from typing import Dict, Optional, Union, List, Any
 
 import networkx as nx
 
@@ -77,14 +85,12 @@ DHCP_SERVER_PORT = 67
 DHCP_CLIENT_PORT = 68
 DHCP_MAGIC_COOKIE = b'\x63\x82\x53\x63'
 
-# DHCP message types (option 53)
 DHCP_DISCOVER = 1
 DHCP_OFFER    = 2
 DHCP_REQUEST  = 3
 DHCP_ACK      = 5
 DHCP_NAK      = 6
 
-# Types that only a SERVER should send — used for rogue detection
 DHCP_SERVER_MSG_TYPES = {DHCP_OFFER, DHCP_ACK, DHCP_NAK}
 
 PORT_ICONS = {
@@ -178,11 +184,6 @@ class BPDUDetector:
 # ── Détecteur DHCP ───────────────────────────────────────────────────────────
 
 class DHCPDetector:
-    """
-    Parse raw Ethernet frame to detect DHCP messages.
-    Returns None if not DHCP, otherwise a dict with type / client_mac / offered_ip.
-    """
-
     @staticmethod
     def detect(raw: bytes) -> Optional[dict]:
         try:
@@ -198,34 +199,29 @@ class DHCPDetector:
             if udp_.dst_port not in (DHCP_SERVER_PORT, DHCP_CLIENT_PORT):
                 return None
 
-            # Locate UDP payload (DHCP starts after Ethernet+IP+UDP headers)
             payload = DHCPDetector._udp_payload(raw)
             if payload is None or len(payload) < 240:
                 return None
 
-            # Verify magic cookie
             if payload[236:240] != DHCP_MAGIC_COOKIE:
                 return None
 
-            # Parse option 53 (message type) from options field
             msg_type = DHCPDetector._option53(payload[240:])
             if msg_type is None:
                 return None
 
-            # Client MAC is at offset 28 (chaddr, 16 bytes, first 6 used)
             client_mac = ':'.join(f'{b:02x}' for b in payload[28:34])
 
-            # yiaddr = offered/assigned IP (offset 16, 4 bytes)
             offered_ip = '.'.join(str(b) for b in payload[16:20])
             if offered_ip == '0.0.0.0':
                 offered_ip = None
 
             return {
-                'msg_type':   msg_type,
-                'client_mac': client_mac,
-                'offered_ip': offered_ip,
-                'src_ip':      ip4.src,
-                'src_mac':    eth.src,
+                'msg_type':      msg_type,
+                'client_mac':    client_mac,
+                'offered_ip':    offered_ip,
+                'src_ip':        ip4.src,
+                'src_mac':       eth.src,
                 'is_server_msg': msg_type in DHCP_SERVER_MSG_TYPES,
             }
         except Exception as e:
@@ -234,26 +230,23 @@ class DHCPDetector:
 
     @staticmethod
     def _udp_payload(raw: bytes) -> Optional[bytes]:
-        """Extract UDP payload from raw Ethernet frame."""
         try:
             pkt  = packet.Packet(raw)
             udp_ = pkt.get_protocol(udp.udp)
             if not udp_:
                 return None
-            # ryu udp.data holds the payload
             return udp_.data if isinstance(udp_.data, (bytes, bytearray)) else None
         except Exception:
             return None
 
     @staticmethod
     def _option53(opts: bytes) -> Optional[int]:
-        """Extract DHCP option 53 (message type) value."""
         i = 0
         while i < len(opts):
             code = opts[i]
-            if code == 255:   # END
+            if code == 255:
                 break
-            if code == 0:     # PAD
+            if code == 0:
                 i += 1
                 continue
             if i + 1 >= len(opts):
@@ -268,24 +261,12 @@ class DHCPDetector:
 # ── DHCP Snooping Manager ────────────────────────────────────────────────────
 
 class DHCPSnoopingManager:
-    """
-    Maintient la liste des ports trusted et la binding table.
-
-    Trusted ports  : peuvent envoyer DHCPOFFER / DHCPACK / DHCPNAK.
-    Untrusted ports: toute réponse DHCP → blocage immédiat + alerte CRITICAL.
-
-    Binding table  : {client_mac → {'ip', 'dpid', 'port', 'lease_time'}}
-    Enregistrée lors de chaque DHCPACK valide sur un port trusted.
-    """
-
     def __init__(self):
         self._lock        = threading.Lock()
-        self.trusted      = set()    # {(dpid, port_no)}
-        self.blocked      = set()    # ports bloqués pour DHCP rogue
-        self.binding      = {}       # {client_mac: {...}}
+        self.trusted      = set()
+        self.blocked      = set()
+        self.binding      = {}
         self.alerts       = []
-
-    # ── Trust management ─────────────────────────────────────────────────────
 
     def set_trusted(self, dpid, port):
         with self._lock:
@@ -301,16 +282,13 @@ class DHCPSnoopingManager:
         with self._lock:
             return (dpid, port) in self.trusted
 
-    # ── Binding table ─────────────────────────────────────────────────────────
-
     def record_binding(self, client_mac, offered_ip, dpid, port):
-        """Called when a DHCPACK is seen on a trusted port."""
         with self._lock:
             self.binding[client_mac] = {
-                'ip':         offered_ip,
-                'dpid':        dpid,
-                'port':        port,
-                'leased_at':  time.strftime('%Y-%m-%d %H:%M:%S'),
+                'ip':        offered_ip,
+                'dpid':      dpid,
+                'port':      port,
+                'leased_at': time.strftime('%Y-%m-%d %H:%M:%S'),
             }
         logger.info(f"[DHCP Snooping] Binding: {client_mac} → {offered_ip}  "
                     f"dpid={dpid} port={port}")
@@ -318,8 +296,6 @@ class DHCPSnoopingManager:
     def get_binding(self, client_mac):
         with self._lock:
             return self.binding.get(client_mac)
-
-    # ── Rogue detection ───────────────────────────────────────────────────────
 
     def mark_blocked(self, dpid, port):
         with self._lock:
@@ -354,14 +330,10 @@ class DHCPSnoopingManager:
     def get_status(self):
         with self._lock:
             return {
-                'trusted_ports': [
-                    {'dpid': d, 'port': p} for (d, p) in self.trusted
-                ],
-                'blocked_rogue_ports': [
-                    {'dpid': d, 'port': p} for (d, p) in self.blocked
-                ],
-                'binding_table':  dict(self.binding),
-                'rogue_alerts':   len(self.alerts),
+                'trusted_ports':      [{'dpid': d, 'port': p} for (d, p) in self.trusted],
+                'blocked_rogue_ports':[{'dpid': d, 'port': p} for (d, p) in self.blocked],
+                'binding_table':      dict(self.binding),
+                'rogue_alerts':       len(self.alerts),
             }
 
 
@@ -409,16 +381,11 @@ class PendingActions:
 # ── Gestionnaire de sécurité STP ─────────────────────────────────────────────
 
 class STPSecurityManager:
-    """
-    BPDU Guard : port edge reçoit un BPDU → blocage immédiat.
-    Root Guard : BPDU supérieur sur port protégé → root-inconsistent + alerte.
-    """
-
     def __init__(self):
-        self._lock       = threading.Lock()
-        self.protected   = {}     # {(dpid, port): 'bpdu_guard'|'root_guard'|'both'}
-        self.known_root  = None   # {'priority', 'mac', 'dpid', 'seen_at'}
-        self.alerts      = []
+        self._lock      = threading.Lock()
+        self.protected  = {}
+        self.known_root = None
+        self.alerts     = []
 
     def enable_bpdu_guard(self, dpid, port):
         with self._lock:
@@ -511,6 +478,10 @@ class STPRestAPI(ControllerBase):
     def get_status(self, req, **kwargs):
         return self._ok({
             'protocols_detected': dict(self.app.proto_count),
+            'inter_switch_ports': [
+                {'dpid': d, 'port': p}
+                for (d, p) in sorted(self.app._inter_switch_ports)
+            ],
             'port_states': {f"dpid={d}/port={p}": v
                             for (d, p), v in self.app.port_states.items()},
             'blocked_ports': [{'dpid': d, 'port': p}
@@ -519,8 +490,8 @@ class STPRestAPI(ControllerBase):
                                                     'root_inconsistent',
                                                     'bpdu_guard_err',
                                                     'dhcp_rogue_err')],
-            'stp_security':   self.app.security.get_status(),
-            'dhcp_snooping':  self.app.dhcp_snooping.get_status(),
+            'stp_security':  self.app.security.get_status(),
+            'dhcp_snooping': self.app.dhcp_snooping.get_status(),
         })
 
     @route('stp', '/stp/pending', methods=['GET'])
@@ -620,6 +591,43 @@ class STPRestAPI(ControllerBase):
         self.app.dhcp_snooping.unmark_blocked(dpid, port_no)
         return self._ok({'result': f'Port DEBLOQUE (DHCP): dpid={dpid} port={port_no}'})
 
+    # ── DHCP Mitigation ───────────────────────────────────────────────────────
+
+    @route('stp', '/dhcp-mitigation/status', methods=['GET'])
+    def get_mitigation_status(self, req, **kwargs):
+        return self._ok(self.app.dhcp_mitigation.get_full_status())
+
+    @route('stp', '/dhcp-mitigation/threats', methods=['GET'])
+    def get_threat_history(self, req, **kwargs):
+        return self._ok({
+            'scores':  self.app.dhcp_mitigation.threat_scorer.get_all_scores(),
+            'history': self.app.dhcp_mitigation.threat_scorer.get_history(50),
+        })
+
+    @route('stp', '/dhcp-mitigation/quarantine/{dpid}/{port_no}', methods=['POST'])
+    def force_quarantine(self, req, dpid, port_no, **kwargs):
+        dpid, port_no = int(dpid), int(port_no)
+        self.app.dhcp_mitigation.quarantine_mgr.quarantine(dpid, port_no)
+        return self._ok({'result': f'Quarantine forcee: dpid={dpid} port={port_no}'})
+
+    @route('stp', '/dhcp-mitigation/release/{dpid}/{port_no}', methods=['POST'])
+    def release_quarantine(self, req, dpid, port_no, **kwargs):
+        dpid, port_no = int(dpid), int(port_no)
+        if dpid not in self.app.datapaths:
+            return self._err('Switch non connecte')
+        ok, msg = self.app.dhcp_mitigation.try_release(
+            self.app.datapaths[dpid], port_no)
+        if not ok:
+            return self._err(msg, status=403)
+        self.app._do_unblock(self.app.datapaths[dpid], port_no)
+        return self._ok({'result': msg})
+
+    @route('stp', '/dhcp-mitigation/reset-score/{dpid}/{port_no}', methods=['POST'])
+    def reset_threat_score(self, req, dpid, port_no, **kwargs):
+        dpid, port_no = int(dpid), int(port_no)
+        self.app.dhcp_mitigation.reset_threat_score(dpid, port_no)
+        return self._ok({'result': f'Score reinitialise: dpid={dpid} port={port_no}'})
+
 
 # ── Contrôleur Principal ──────────────────────────────────────────────────────
 
@@ -634,8 +642,10 @@ class StandaloneSTController(app_manager.RyuApp):
         self.mac_to_port   = {}
         self.port_states   = {}
         self.proto_count   = defaultdict(int)
-        self.intercepted   = set()
-        self.pending       = PendingActions(timeout=120)
+        self.intercepted            = set()
+        self._blocked_by_controller = set()
+        self._inter_switch_ports    = set()
+        self.pending       = PendingActions(timeout=600)
         self.security      = STPSecurityManager()
         self.dhcp_snooping = DHCPSnoopingManager()
         self.rl_graph = nx.Graph()
@@ -647,27 +657,53 @@ class StandaloneSTController(app_manager.RyuApp):
         self._install_stplib_log_handler()
 
         self.stp.set_config({
-            'bridge': {'hello_time': 1, 'forward_delay': 2, 'max_age': 10}
-        })
+        'bridge': {
+        'hello_time':    1,   # détection rapide des pannes (1s au lieu de 2s)
+        'forward_delay': 6,   # LISTENING+LEARNING = 6s chacun (pas 15s)
+        'max_age':       10,  # BPDU staleness : 10s (pas 20s)
+    }
+})
         wsgi = kwargs['wsgi']
         wsgi.register(STPRestAPI, {STP_APP_KEY: self})
+
+        self.dhcp_mitigation = DHCPMitigationLayer(self)
+
+        # ── Ports inter-switch hardcodés (topologie statique) ─────────────────
+        # SW1 (dpid=134916311342148) : eth1=port2→SW2 | eth2=port3→SW3
+        # SW2 (dpid=239857082692166) : eth0=port1→SW1 | eth1=port2→SW3
+        # SW3 (dpid=257854794257216) : eth0=port1→SW1 | eth1=port2→SW2
+        self._inter_switch_ports = {
+            (134916311342148, 2),  # SW1 eth1 → SW2
+            (134916311342148, 3),  # SW1 eth2 → SW3
+            (239857082692166, 1),  # SW2 eth0 → SW1
+            (239857082692166, 2),  # SW2 eth1 → SW3
+            (257854794257216, 1),  # SW3 eth0 → SW1
+            (257854794257216, 2),  # SW3 eth1 → SW2
+        }
+        logger.info(f"[TOPO] Ports inter-switch (statiques): {sorted(self._inter_switch_ports)}")
 
         logger.info("=" * 66)
         logger.info("  [STP] Controleur SEMI-MANUEL + SECURITE + DHCP SNOOPING")
         logger.info("  STP | RSTP | MSTP | PVST | PVST+")
-        logger.info("  BPDU Guard + Root Guard + DHCP Snooping")
+        logger.info("  BPDU Guard + Root Guard + DHCP Snooping + Mitigation")
+        logger.info("  Edge port detection via LLDP (--observe-links requis)")
         logger.info("")
-        logger.info("  GET  /stp/status")
+        logger.info("  GET  /stp/status          (inclut inter_switch_ports)")
         logger.info("  GET  /stp/pending")
         logger.info("  GET  /stp/security/alerts")
         logger.info("  GET  /dhcp-snooping/status")
         logger.info("  GET  /stp/dhcp-snooping/alerts")
+        logger.info("  GET  /dhcp-mitigation/status")
+        logger.info("  GET  /dhcp-mitigation/threats")
         logger.info("  POST /stp/confirm/<id>")
         logger.info("  POST /stp/security/bpdu-guard/<dpid>/<port>")
         logger.info("  POST /stp/security/root-guard/<dpid>/<port>")
         logger.info("  POST /stp/dhcp-snooping/trust/<dpid>/<port>")
         logger.info("  DELETE /stp/dhcp-snooping/trust/<dpid>/<port>")
         logger.info("  POST /stp/dhcp-snooping/unblock/<dpid>/<port>")
+        logger.info("  POST /dhcp-mitigation/quarantine/<dpid>/<port>")
+        logger.info("  POST /dhcp-mitigation/release/<dpid>/<port>")
+        logger.info("  POST /dhcp-mitigation/reset-score/<dpid>/<port>")
         logger.info("=" * 66)
 
     def _install_stplib_log_handler(self):
@@ -724,7 +760,7 @@ class StandaloneSTController(app_manager.RyuApp):
                                     match=match, instructions=inst)
         datapath.send_msg(mod)
 
-    # ── Packet in (stplib filtered) ───────────────────────────────────────────
+    # ── Packet in ─────────────────────────────────────────────────────────────
 
     @set_ev_cls(stplib.EventPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
@@ -742,37 +778,37 @@ class StandaloneSTController(app_manager.RyuApp):
             self._handle_bpdu(datapath, in_port, msg.data)
             return
 
-        # ── DHCP Snooping check ───────────────────────────────────────────────
+        _dhcp_pre = DHCPDetector.detect(msg.data)
+        _ip4_pkt  = pkt.get_protocol(ipv4.ipv4)
+        _src_ip   = _ip4_pkt.src if _ip4_pkt else ''
+        if not self.dhcp_mitigation.inspect(datapath, in_port, _dhcp_pre, _src_ip, eth.src):
+            return
+
         dhcp_info = DHCPDetector.detect(msg.data)
         if dhcp_info is not None:
             if not self._check_dhcp_snooping(datapath, in_port, dhcp_info):
-                return   # Packet dropped — rogue DHCP server
+                return
 
         self.mac_to_port[dpid][eth.src] = in_port
-        # ── RL Routing ───────────────────────────────────────────────────────────
+
         out_port = self.mac_to_port[dpid].get(eth.dst, ofproto.OFPP_FLOOD)
         if out_port == ofproto.OFPP_FLOOD:
-	    # Cherche si dst_mac est connu sur un autre switch
-	    dst_dpid = None
-	    for sw, macs in self.mac_to_port.items():
-               if sw != dpid and eth.dst in macs:
+            dst_dpid = None
+            for sw, macs in self.mac_to_port.items():
+                if sw != dpid and eth.dst in macs:
                     dst_dpid = sw
                     break
-               if dst_dpid is not None:
-                 path = self.rl_agent.get_path(dpid, dst_dpid, lam=200, fallback=None)
-               if path and len(path) >= 2:
+            if dst_dpid is not None:
+                path = self.rl_agent.get_path(dpid, dst_dpid, lam=200, fallback=None)
+                if path and len(path) >= 2:
                     next_hop = path[1]
-		    # Trouve le port local vers next_hop
-                    for mac, port in self.mac_to_port.get(next_hop, {}).items():
-                        if mac in self.mac_to_port.get(dpid, {}).values():
-                            pass
-		    # Port vers next_hop via mac appris
                     learned = self.mac_to_port.get(next_hop, {})
                     for m, p in self.mac_to_port[dpid].items():
                         if m in learned:
-                           out_port = p
-                           break
+                            out_port = p
+                            break
                     logger.info(f"[RL] path {dpid}→{dst_dpid}: {path} → out_port={out_port}")
+
         actions  = [parser.OFPActionOutput(out_port)]
         if out_port != ofproto.OFPP_FLOOD:
             self._add_flow(datapath, 1,
@@ -791,38 +827,19 @@ class StandaloneSTController(app_manager.RyuApp):
         state_str = STPLIB_STATE_MAP.get(ev.port_state, 'unknown')
         protocol  = self.port_states.get((dpid, port_no), {}).get('protocol', 'STP')
         old       = self.port_states.get((dpid, port_no), {}).get('state', '?')
+        port_role = self._last_stplib_role.get((dpid, port_no), 'UNKNOWN')
 
         logger.info(f"[{protocol}] dpid={dpid} port={port_no} "
                     f"{old.upper()} -> {PORT_ICONS.get(state_str, state_str)}  [stplib]")
 
-        if ev.port_state == stplib.PORT_STATE_BLOCK:
-            is_final_block = (old == 'learning')
-            port_role = self._last_stplib_role.get((dpid, port_no), 'UNKNOWN')
-
-            self.port_states[(dpid, port_no)] = {
-                'state':      'pending_block',
-                'protocol':    protocol,
-                'port_role':  port_role,
-                'updated_at': time.strftime('%H:%M:%S'),
-                'note':        'NON_DESIGNATED final' if is_final_block else 'BLOCK transitoire',
-            }
-
-            if is_final_block:
-                self.intercepted.add((dpid, port_no))
-                if not self.pending.already_pending(dpid, port_no):
-                    self._propose_block(
-                        ev.dp, port_no, protocol,
-                        f"Port NON_DESIGNATED (LEARNING->BLOCK): dpid={dpid} port={port_no}")
-            else:
-                logger.debug(f"[STP] Transitoire ignore (old={old}): dpid={dpid} port={port_no}")
-            return
-
+        # stplib gère entièrement le blocage/déblocage STP via ses mécanismes internes.
+        # Le contrôleur se contente de mettre à jour port_states pour l'API REST.
         self.port_states[(dpid, port_no)] = {
-            'state': state_str, 'protocol': protocol,
+            'state':      state_str,
+            'protocol':   protocol,
+            'port_role':  port_role,
             'updated_at': time.strftime('%H:%M:%S'),
         }
-        if (dpid, port_no) in self.intercepted and state_str == 'forwarding':
-            self.intercepted.discard((dpid, port_no))
 
     @set_ev_cls(stplib.EventTopologyChange, MAIN_DISPATCHER)
     def topology_change_handler(self, ev):
@@ -835,13 +852,13 @@ class StandaloneSTController(app_manager.RyuApp):
         if eth.dst.lower() in (BPDU_DST_STD, BPDU_DST_PVST):
             self._handle_bpdu(msg.datapath, msg.match['in_port'], msg.data)
 
-    # ── DHCP Snooping logic ───────────────────────────────────────────────────
+    # ── LLDP / Topology — désactivé (ports inter-switch hardcodés) ───────────
+    # Les handlers EventLinkAdd / EventLinkDelete sont supprimés volontairement.
+    # Lancer sans --observe-links pour éviter l'oscillation TOPO qui perturbe stplib.
+
+    # ── DHCP Snooping ─────────────────────────────────────────────────────────
 
     def _check_dhcp_snooping(self, datapath, in_port, dhcp_info: dict) -> bool:
-        """
-        Returns True  → packet is legitimate, forward normally.
-        Returns False → packet is a rogue DHCP response, DROP + block port.
-        """
         dpid     = datapath.id
         msg_type = dhcp_info['msg_type']
 
@@ -853,15 +870,15 @@ class StandaloneSTController(app_manager.RyuApp):
                 self.dhcp_snooping.record_binding(
                     dhcp_info['client_mac'], dhcp_info['offered_ip'], dpid, in_port)
             return True
-        
-        details = (f"Rogue server detected: IP={dhcp_info['src_ip']} MAC={dhcp_info['src_mac']} "
-                   f"MsgType={msg_type} (assigned to {dhcp_info['client_mac']})")
-        logger.critical(f"!!! [DHCP SNOOPING] {details} on untrusted dpid={dpid} port={in_port}")
-        
+
+        details = (f"Rogue server: IP={dhcp_info['src_ip']} MAC={dhcp_info['src_mac']} "
+                   f"MsgType={msg_type} client={dhcp_info['client_mac']}")
+        logger.critical(f"!!! [DHCP SNOOPING] {details} dpid={dpid} port={in_port}")
+
         self.dhcp_snooping.add_alert(dpid, in_port, details)
         self.dhcp_snooping.mark_blocked(dpid, in_port)
         self._do_block(datapath, in_port, "DHCP-Snooping")
-        
+
         self.port_states[(dpid, in_port)] = {
             'state': 'dhcp_rogue_err', 'protocol': 'DHCP',
             'updated_at': time.strftime('%H:%M:%S'),
@@ -869,33 +886,39 @@ class StandaloneSTController(app_manager.RyuApp):
         }
         return False
 
-    # ── BPDU / Security Logic ────────────────────────────────────────────────
+    # ── BPDU / Security ───────────────────────────────────────────────────────
 
     def _handle_bpdu(self, datapath, port_no, data):
         dpid = datapath.id
-        eth = packet.Packet(data).get_protocols(ethernet.ethernet)[0]
+        eth  = packet.Packet(data).get_protocols(ethernet.ethernet)[0]
         info = BPDUDetector.detect(eth.dst, data)
         self.proto_count[info['protocol']] += 1
-        
+
         if (dpid, port_no) not in self.port_states:
             self.port_states[(dpid, port_no)] = {
                 'state': 'listening', 'protocol': info['protocol'],
                 'updated_at': time.strftime('%H:%M:%S')
             }
 
-        # 1. BPDU Guard
         if self.security.has_bpdu_guard(dpid, port_no):
-            logger.warning(f"[SECURITY] BPDU Guard triggered! BPDU on Edge port {dpid}:{port_no}")
-            self.security.add_alert('BPDU_GUARD_VIOLATION', dpid, port_no, f"Received {info['protocol']} BPDU")
+            logger.warning(
+                f"[SECURITY] BPDU Guard: BPDU recu sur port edge "
+                f"dpid={dpid} port={port_no} → blocage immediat"
+            )
+            self.security.add_alert('BPDU_GUARD_VIOLATION', dpid, port_no,
+                                    f"Received {info['protocol']} BPDU")
             self._do_block(datapath, port_no, "BPDU-Guard")
             self.port_states[(dpid, port_no)]['state'] = 'bpdu_guard_err'
             return
 
-        # 2. Root Guard
         if self.security.has_root_guard(dpid, port_no):
             if self.security.is_superior_bpdu(info['root_priority'], info['root_mac']):
-                logger.critical(f"[SECURITY] Root Guard: Superior BPDU from {info['root_id']} on port {dpid}:{port_no}")
-                self.security.add_alert('ROOT_HIJACK_ATTEMPT', dpid, port_no, f"Superior BPDU from {info['root_id']}")
+                logger.critical(
+                    f"[SECURITY] Root Guard: BPDU superieur de {info['root_id']} "
+                    f"sur dpid={dpid} port={port_no} → ROOT HIJACK bloque"
+                )
+                self.security.add_alert('ROOT_HIJACK_ATTEMPT', dpid, port_no,
+                                        f"Superior BPDU from {info['root_id']}")
                 self._do_block(datapath, port_no, "Root-Guard")
                 self.port_states[(dpid, port_no)]['state'] = 'root_inconsistent'
                 return
@@ -905,27 +928,72 @@ class StandaloneSTController(app_manager.RyuApp):
 
     def _propose_block(self, datapath, port, proto, reason):
         aid = self.pending.add(datapath.id, port, proto, reason)
-        logger.info(f"!!! [ATTENTION] Boucle détectée par stplib ({proto})")
-        logger.info(f"!!! Action Requise: POST /stp/confirm/{aid} pour bloquer dpid={datapath.id} port={port}")
+        logger.info(f"!!! [ATTENTION] Boucle detectee ({proto})")
+        logger.info(f"!!! Action requise: POST /stp/confirm/{aid} "
+                    f"pour bloquer dpid={datapath.id} port={port}")
 
     def _do_block(self, datapath, port, protocol):
-        parser = datapath.ofproto_parser
-        match = parser.OFPMatch(in_port=port)
-        mod = parser.OFPFlowMod(
+        """
+        Bloque un port via FlowMod OpenFlow 1.3.
+        Utilisé uniquement par : BPDU Guard, Root Guard, DHCP Snooping.
+
+        Deux règles installées :
+          prio=200  eth_dst=BPDU  → CONTROLLER   (BPDUs continuent d'arriver)
+          prio=100  in_port=port  → DROP          (tout le trafic data est bloqué)
+        """
+        parser  = datapath.ofproto_parser
+        ofproto = datapath.ofproto
+
+        self._blocked_by_controller.add((datapath.id, port))
+
+        for bpdu_dst in ('01:80:c2:00:00:00', '01:00:0c:cc:cc:cd'):
+            match_bpdu = parser.OFPMatch(in_port=port, eth_dst=bpdu_dst)
+            mod_bpdu   = parser.OFPFlowMod(
+                datapath=datapath, priority=200,
+                command=ofproto.OFPFC_ADD,
+                match=match_bpdu,
+                instructions=[parser.OFPInstructionActions(
+                    ofproto.OFPIT_APPLY_ACTIONS,
+                    [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
+                                           ofproto.OFPCML_NO_BUFFER)]
+                )]
+            )
+            datapath.send_msg(mod_bpdu)
+
+        match_data = parser.OFPMatch(in_port=port)
+        mod_data   = parser.OFPFlowMod(
             datapath=datapath, priority=100,
-            command=datapath.ofproto.OFPFC_ADD,
-            match=match, instructions=[])
-        datapath.send_msg(mod)
-        logger.info(f"[ACTION] Port BLOQUE (FlowMod 100): dpid={datapath.id} port={port} [{protocol}]")
+            command=ofproto.OFPFC_ADD,
+            match=match_data, instructions=[])
+        datapath.send_msg(mod_data)
+
+        logger.info(
+            f"[ACTION] Port BLOQUE: dpid={datapath.id} port={port} [{protocol}] "
+            f"(data=DROP | BPDUs=passthrough vers controleur)"
+        )
 
     def _do_unblock(self, datapath, port):
-        parser = datapath.ofproto_parser
+        """Supprime les FlowMods de blocage → port redevient normal (table-miss)."""
+        parser  = datapath.ofproto_parser
         ofproto = datapath.ofproto
-        match = parser.OFPMatch(in_port=port)
-        mod = parser.OFPFlowMod(
+
+        self._blocked_by_controller.discard((datapath.id, port))
+
+        for bpdu_dst in ('01:80:c2:00:00:00', '01:00:0c:cc:cc:cd'):
+            match_bpdu = parser.OFPMatch(in_port=port, eth_dst=bpdu_dst)
+            mod_del    = parser.OFPFlowMod(
+                datapath=datapath, priority=200,
+                command=ofproto.OFPFC_DELETE,
+                out_port=ofproto.OFPP_ANY, out_group=ofproto.OFPG_ANY,
+                match=match_bpdu)
+            datapath.send_msg(mod_del)
+
+        match_data = parser.OFPMatch(in_port=port)
+        mod_data   = parser.OFPFlowMod(
             datapath=datapath, priority=100,
             command=ofproto.OFPFC_DELETE,
             out_port=ofproto.OFPP_ANY, out_group=ofproto.OFPG_ANY,
-            match=match)
-        datapath.send_msg(mod)
+            match=match_data)
+        datapath.send_msg(mod_data)
+
         logger.info(f"[ACTION] Port DEBLOQUE: dpid={datapath.id} port={port}")

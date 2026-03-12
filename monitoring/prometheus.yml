@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+
+  - job_name: 'stp_controller'
+    static_configs:
+      # host.docker.internal = ton Ubuntu vu depuis Docker
+      - targets: ['172.17.0.1:9101']
+    scrape_interval: 10s

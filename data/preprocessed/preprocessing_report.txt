@@ -1,0 +1,29 @@
+============================================================
+  PREPROCESSING REPORT
+  Date : 2026-03-06 13:47:11
+============================================================
+
+Dataset original   : 299,997 lignes
+NaN nettoyés       : 21
+Inf nettoyés       : 279
+Doublons supprimés : 0
+Imbalance ratio    : 13435.93x
+
+Features utilisées : 68
+
+Split :
+  Train : 209,997
+  Val   : 30,000
+  Test  : 60,000
+
+Classes (5) :
+  [0] BENIGN
+  [1] DDoS
+  [2] Web Attack � Brute Force
+  [3] Web Attack � Sql Injection
+  [4] Web Attack � XSS
+
+Fichiers générés :
+  X_train.npy  X_val.npy  X_test.npy
+  y_train.npy  y_val.npy  y_test.npy
+  scaler.pkl   label_encoder.pkl  feature_cols.pkl

@@ -1,0 +1,171 @@
+{
+  "title": "SDN Controller — STP & DHCP Security",
+  "uid": "stp-dhcp-monitor",
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+
+    {
+      "id": 1, "type": "stat", "title": "⚠️ Actions en attente",
+      "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "stp_pending_actions", "legendFormat": "Pending"}],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "orange", "value": 1},
+          {"color": "red", "value": 3}
+        ]}
+      }
+    },
+
+    {
+      "id": 2, "type": "stat", "title": "🔴 Ports Bloqués",
+      "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "stp_ports_blocking", "legendFormat": "Blocking"}],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "red", "value": 1}
+        ]}
+      }
+    },
+
+    {
+      "id": 3, "type": "stat", "title": "🚨 Alertes Rogue DHCP",
+      "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "dhcp_rogue_alerts_total", "legendFormat": "Rogue DHCP"}],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "red", "value": 1}
+        ]}
+      }
+    },
+
+    {
+      "id": 4, "type": "stat", "title": "🔒 Ports en Quarantine",
+      "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "mitigation_quarantined_ports", "legendFormat": "Quarantine"}],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "orange", "value": 1},
+          {"color": "red", "value": 3}
+        ]}
+      }
+    },
+
+    {
+      "id": 5, "type": "stat", "title": "🛑 Quarantine Permanente",
+      "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "mitigation_permanent_quarantine", "legendFormat": "Permanent"}],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "red", "value": 1}
+        ]}
+      }
+    },
+
+    {
+      "id": 6, "type": "stat", "title": "🛡️ Alertes Sécurité STP",
+      "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "stp_security_alerts_total", "legendFormat": "STP Alerts"}],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps": [
+          {"color": "green", "value": 0},
+          {"color": "red", "value": 1}
+        ]}
+      }
+    },
+
+    {
+      "id": 7, "type": "timeseries", "title": "État des Ports STP (évolution)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "stp_ports_forwarding", "legendFormat": "🟢 Forwarding"},
+        {"expr": "stp_ports_learning",   "legendFormat": "🟠 Learning"},
+        {"expr": "stp_ports_blocking",   "legendFormat": "🔴 Blocking"},
+        {"expr": "stp_ports_total",      "legendFormat": "Total"}
+      ],
+      "fieldConfig": {
+        "defaults": {"custom": {"lineWidth": 2, "fillOpacity": 10}}
+      }
+    },
+
+    {
+      "id": 8, "type": "timeseries", "title": "DHCP Snooping — Binding & Ports",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "dhcp_trusted_ports",       "legendFormat": "✅ Trusted ports"},
+        {"expr": "dhcp_blocked_rogue_ports", "legendFormat": "🚫 Rogue bloqués"},
+        {"expr": "dhcp_binding_entries",     "legendFormat": "📋 Bindings MAC→IP"},
+        {"expr": "dhcp_rogue_alerts_total",  "legendFormat": "🚨 Alertes rogue"}
+      ]
+    },
+
+    {
+      "id": 9, "type": "timeseries", "title": "Protocoles STP détectés",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 7},
+      "targets": [
+        {"expr": "stp_protocol_count{protocol='STP'}",   "legendFormat": "STP"},
+        {"expr": "stp_protocol_count{protocol='RSTP'}",  "legendFormat": "RSTP"},
+        {"expr": "stp_protocol_count{protocol='MSTP'}",  "legendFormat": "MSTP"},
+        {"expr": "stp_protocol_count{protocol='PVST'}",  "legendFormat": "PVST"},
+        {"expr": "stp_protocol_count{protocol='PVST+'}", "legendFormat": "PVST+"}
+      ]
+    },
+
+    {
+      "id": 10, "type": "timeseries", "title": "Mitigation — Threat Scores",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 7},
+      "targets": [
+        {
+          "expr": "mitigation_threat_score",
+          "legendFormat": "{{dpid_port}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {"steps": [
+            {"color": "green",  "value": 0},
+            {"color": "orange", "value": 3},
+            {"color": "red",    "value": 10}
+          ]},
+          "custom": {"lineWidth": 2}
+        }
+      }
+    },
+
+    {
+      "id": 11, "type": "timeseries", "title": "IP Source Guard — Violations",
+      "gridPos": {"x": 0, "y": 19, "w": 12, "h": 6},
+      "targets": [
+        {"expr": "mitigation_ip_violations_total", "legendFormat": "IP Spoofing détecté"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"fixedColor": "red", "mode": "fixed"},
+          "custom": {"lineWidth": 2, "fillOpacity": 20}
+        }
+      }
+    },
+
+    {
+      "id": 12, "type": "timeseries", "title": "Actions en attente + Ports protégés",
+      "gridPos": {"x": 12, "y": 19, "w": 12, "h": 6},
+      "targets": [
+        {"expr": "stp_pending_actions",   "legendFormat": "⚠️ Pending actions"},
+        {"expr": "stp_protected_ports",   "legendFormat": "🛡️ Ports BPDU/Root Guard"}
+      ]
+    }
+
+  ]
+}

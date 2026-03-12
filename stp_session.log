@@ -1,0 +1,517 @@
+loading app controllers/controller_stp.py
+loading app ryu.controller.ofp_handler
+instantiating app None of Stp
+creating context stplib
+creating context wsgi
+instantiating app controllers/controller_stp.py of StandaloneSTController
+==================================================================
+  [MITIGATION] DHCPMitigationLayer activée
+  Rate Limit   : 10 paquets / 5s
+  Quarantine   : cooldown 300s
+  Threat Score : block>=3  permanent>=10
+==================================================================
+==================================================================
+  [STP] Controleur SEMI-MANUEL + SECURITE + DHCP SNOOPING
+  STP | RSTP | MSTP | PVST | PVST+
+  BPDU Guard + Root Guard + DHCP Snooping + Mitigation
+
+  GET  /stp/status
+  GET  /stp/pending
+  GET  /stp/security/alerts
+  GET  /dhcp-snooping/status
+  GET  /stp/dhcp-snooping/alerts
+  GET  /dhcp-mitigation/status
+  GET  /dhcp-mitigation/threats
+  POST /stp/confirm/<id>
+  POST /stp/security/bpdu-guard/<dpid>/<port>
+  POST /stp/security/root-guard/<dpid>/<port>
+  POST /stp/dhcp-snooping/trust/<dpid>/<port>
+  DELETE /stp/dhcp-snooping/trust/<dpid>/<port>
+  POST /stp/dhcp-snooping/unblock/<dpid>/<port>
+  POST /dhcp-mitigation/quarantine/<dpid>/<port>
+  POST /dhcp-mitigation/release/<dpid>/<port>
+  POST /dhcp-mitigation/reset-score/<dpid>/<port>
+==================================================================
+instantiating app ryu.controller.ofp_handler of OFPHandler
+(74075) wsgi starting up on http://0.0.0.0:8080
+[STP] Switch connecte: dpid=3
+[STP][INFO] dpid=0000000000000003: Join as stp bridge.
+[STP] dpid=3 port=8 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 ? -> 🟡 LISTENING  [stplib]
+[STP] Switch connecte: dpid=2
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=2 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000002: Join as stp bridge.
+[STP] dpid=2 port=8 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=5 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=1 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=4 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=6 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=7 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=2 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=2] DESIGNATED_PORT     / LISTEN
+[STP] dpid=2 port=3 ? -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=2] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=4] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=4] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LISTEN
+[STP][INFO] dpid=0000000000000002: [port=8] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000002: [port=5] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000002: [port=1] DESIGNATED_PORT     / LEARN
+[STP] dpid=2 port=8 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=2 port=5 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=2 port=1 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=4] DESIGNATED_PORT     / LEARN
+[STP] dpid=2 port=4 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=6] DESIGNATED_PORT     / LEARN
+[STP] dpid=2 port=6 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=7] DESIGNATED_PORT     / LEARN
+[STP] dpid=2 port=7 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=2] DESIGNATED_PORT     / LEARN
+[STP] dpid=2 port=2 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=3] DESIGNATED_PORT     / LEARN
+[STP] dpid=2 port=3 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LEARN
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=2 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=8 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=5 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=1 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=6 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=7 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=3 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LEARN
+[STP] dpid=3 port=4 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=8] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000002: [port=5] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000002: [port=1] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000002: [port=4] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000002: [port=6] DESIGNATED_PORT     / FORWARD
+[STP] dpid=2 port=8 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=2 port=5 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=2 port=1 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=2 port=4 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=2 port=6 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=7] DESIGNATED_PORT     / FORWARD
+[STP] dpid=2 port=7 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=2] DESIGNATED_PORT     / FORWARD
+[STP] dpid=2 port=2 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000002: [port=3] DESIGNATED_PORT     / FORWARD
+[STP] dpid=2 port=3 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] Wait BPDU timer is exceeded.
+[STP] dpid=3 port=8 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Root bridge.
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=2] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=4] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LEARN
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=2 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=8 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=5 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=1 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=6 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=7 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=3 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LEARN
+[STP] dpid=3 port=4 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / FORWARD
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / FORWARD
+[STP] dpid=3 port=2 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=3 port=8 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=3 port=5 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / FORWARD
+[STP] dpid=3 port=1 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=3 port=6 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP] dpid=3 port=7 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / FORWARD
+[STP] dpid=3 port=3 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / BLOCK
+[STP] dpid=3 port=4 LEARNING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] Wait BPDU timer is exceeded.
+[STP] dpid=3 port=8 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 FORWARDING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Root bridge.
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=2] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=4] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=4] Receive superior BPDU.
+[STP] dpid=3 port=8 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=5 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=1 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=4 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=6 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=7 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=2 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] DESIGNATED_PORT     / BLOCK
+[STP] dpid=3 port=3 LISTENING -> 🔴 BLOCKING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / BLOCK
+[STP][INFO] dpid=0000000000000003: Non root bridge.
+[STP] dpid=3 port=2 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LISTEN
+[STP] dpid=3 port=8 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=5 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=1 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=6 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=7 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=3 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LISTEN
+[STP] dpid=3 port=4 PENDING_BLOCK -> 🟡 LISTENING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LISTEN
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / LEARN
+[STP] dpid=3 port=2 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=8 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=5 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=1 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=6 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=7] DESIGNATED_PORT     / LEARN
+[STP] dpid=3 port=7 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=3] DESIGNATED_PORT     / LEARN
+[STP][INFO] dpid=0000000000000003: [port=4] NON_DESIGNATED_PORT / LEARN
+[STP] dpid=3 port=3 LISTENING -> 🟠 LEARNING  [stplib]
+[STP] dpid=3 port=4 LISTENING -> 🟠 LEARNING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=2] ROOT_PORT           / FORWARD
+[STP] dpid=3 port=2 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=8] DESIGNATED_PORT     / FORWARD
+[STP] dpid=3 port=8 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=5] DESIGNATED_PORT     / FORWARD
+[STP] dpid=3 port=5 LEARNING -> 🟢 FORWARDING  [stplib]
+[STP][INFO] dpid=0000000000000003: [port=1] DESIGNATED_PORT     / FORWARD
+[STP][INFO] dpid=0000000000000003: [port=6] DESIGNATED_PORT     / FORWARD
+[STP] dpid=3 port=1 LEARNING -> �
